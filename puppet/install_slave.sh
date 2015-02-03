@@ -2,14 +2,14 @@
 
 # Sets up a slave Jenkins server intended to run devstack-based Jenkins jobs
 
+
 set -e
 
 THIS_DIR=`pwd`
 
-DATA_REPO_INFO_FILE=$THIS_DIR/.data_repo_info
-DATA_PATH=$THIS_DIR/os-ext-testing-data
+DATA_PATH=/root/infrastructure.hg/os-ext-data
 OSEXT_PATH=$THIS_DIR/os-ext-testing
-OSEXT_REPO=https://github.com/rasselin/os-ext-testing
+OSEXT_REPO=https://github.com/citrix-openstack/os-ext-testing
 PUPPET_MODULE_PATH="--modulepath=$OSEXT_PATH/puppet/modules:/root/system-config/modules:/etc/puppet/modules"
 
 if ! sudo test -d /root/system-config; then
@@ -57,12 +57,12 @@ if [[ ! -e $DATA_PATH ]]; then
         echo "Data repository is required to proceed. Exiting."
         exit 1
     fi
-    git clone $data_repo_uri $DATA_PATH
+    hg clone $data_repo_uri $DATA_PATH
 fi
 
 if [[ "$PULL_LATEST_DATA_REPO" == "1" ]]; then
     echo "Pulling latest data repo master."
-    cd $DATA_PATH; git checkout master && git pull; cd $THIS_DIR;
+    cd $DATA_PATH; hg pull -u; cd $THIS_DIR;
 fi
 
 # Pulling in variables from data repository
