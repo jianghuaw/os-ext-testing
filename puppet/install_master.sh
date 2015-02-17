@@ -159,5 +159,5 @@ CLASS_ARGS="$gerrit_args $zuul_args $nodepool_args $jenkins_args $proxy_args"
 sudo puppet apply --verbose $PUPPET_MODULE_PATH -e "class {'os_ext_testing::master': $CLASS_ARGS }"
 
 #Not sure why nodepool private key is not getting set in the puppet scripts
-sudo cp  $DATA_PATH/$JENKINS_SSH_KEY_PATH /home/nodepool/.ssh/id_rsa
-sudo cp $DATA_PATH/nodepool-scripts /etc/nodepool/scripts
+sudo cp $DATA_PATH/$JENKINS_SSH_KEY_PATH /home/nodepool/.ssh/id_rsa
+sudo cp $DATA_PATH/nodepool-scripts/* /etc/nodepool/scripts
