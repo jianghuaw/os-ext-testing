@@ -8,7 +8,7 @@ set -e
 THIS_DIR=`pwd`
 
 DATA_PATH=/root/os-ext-data
-OSEXT_PATH=$THIS_DIR/os-ext-testing
+OSEXT_PATH=/root/os-ext-testing
 OSEXT_REPO=https://github.com/citrix-openstack/os-ext-testing
 OSEXT_BRANCH=master
 PUPPET_MODULE_PATH="--modulepath=$OSEXT_PATH/puppet/modules:/root/system-config/modules:/etc/puppet/modules"
