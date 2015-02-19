@@ -158,3 +158,5 @@ sudo puppet apply --verbose $PUPPET_MODULE_PATH -e "class {'os_ext_testing::mast
 #Not sure why nodepool private key is not getting set in the puppet scripts
 sudo cp $DATA_PATH/$JENKINS_SSH_KEY_PATH /home/nodepool/.ssh/id_rsa
 sudo cp $DATA_PATH/nodepool-scripts/* /etc/nodepool/scripts
+cd /usr/local/lib/python2.7/dist-packages/nodepool
+sudo patch -p2 < $DATA_PATH/config_drive.patch
