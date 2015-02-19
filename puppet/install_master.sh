@@ -121,14 +121,14 @@ fi
 
 if [[ -n $SWIFT_AUTHURL ]]; then
     zuul_args="$zuul_args
-  swift_authurl = '$SWIFT_AUTHURL',
-  swift_auth_version = '$SWIFT_AUTH_VERSION',
-  swift_user = '$SWIFT_USER',
-  swift_key = '$SWIFT_KEY',
-  swift_tenant_name = '$SWIFT_TENANT_NAME',
-  swift_region_name = '$SWIFT_REGION_NAME',
-  swift_default_container = '$SWIFT_DEFAULT_CONTAINER',
-  swift_default_logserver_prefix = '$SWIFT_DEFAULT_LOGSERVER_PREFIX',"
+  swift_authurl => '$SWIFT_AUTHURL',
+  swift_auth_version => '$SWIFT_AUTH_VERSION',
+  swift_user => '$SWIFT_USER',
+  swift_key => '$SWIFT_KEY',
+  swift_tenant_name => '$SWIFT_TENANT_NAME',
+  swift_region_name => '$SWIFT_REGION_NAME',
+  swift_default_container => '$SWIFT_DEFAULT_CONTAINER',
+  swift_default_logserver_prefix => '$SWIFT_DEFAULT_LOGSERVER_PREFIX',"
 fi
 
 nodepool_args="mysql_root_password => '$MYSQL_ROOT_PASSWORD',
