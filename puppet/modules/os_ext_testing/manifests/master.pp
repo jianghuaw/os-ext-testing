@@ -43,6 +43,15 @@ class os_ext_testing::master (
   $http_proxy = '',
   $https_proxy = '',
   $no_proxy = '',
+  # Credentials for swift, if needed
+  $swift_authurl = '',
+  $swift_auth_version = '',
+  $swift_user = '',
+  $swift_key = '',
+  $swift_tenant_name = '',
+  $swift_region_name = '',
+  $swift_default_container = '',
+  $swift_default_logserver_prefix = '',
 ) {
   include os_ext_testing::base
 
@@ -96,6 +105,14 @@ class os_ext_testing::master (
     statsd_host          => $statsd_host,
     git_email            => $git_email,
     git_name             => $git_name,
+    swift_authurl        => $swift_authurl,
+    swift_auth_version	 => $swift_auth_version,
+    swift_user	         => $swift_user,
+    swift_key            => $swift_key,
+    swift_tenant_name    => $swift_tenant_name,
+    swift_region_name    => $swift_region_name,
+    swift_default_container         => $swift_default_container,
+    swift_default_logserver_prefix  => $swift_default_logserver_prefix,
     layout_dir  => ["${data_repo_dir}/etc/zuul/",]
   }
 
