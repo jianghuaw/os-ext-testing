@@ -250,9 +250,8 @@
       - shell: "/usr/local/jenkins/slave_scripts/grab_console_log.sh"
       - shell: |
           #!/bin/sh
-          virtualenv osci
-          cd osci
-          . bin/activate
+          virtualenv osci-env
+          . osci-env/bin/activate
           git clone https://github.com/citrix-openstack/openstack-citrix-ci openstack-citrix-ci
           pip install -r openstack-citrix-ci/requirements.txt
           pip install -e openstack-citrix-ci
