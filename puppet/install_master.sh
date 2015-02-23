@@ -160,3 +160,5 @@ sudo cp $DATA_PATH/$JENKINS_SSH_KEY_PATH /home/nodepool/.ssh/id_rsa
 sudo cp $DATA_PATH/nodepool-scripts/* /etc/nodepool/scripts
 cd /usr/local/lib/python2.7/dist-packages/nodepool
 sudo patch -N -p2 < $DATA_PATH/config_drive.patch
+sudo rm /etc/apache2/sites-enabled/50-jenkins.conf
+sudo service apache2 restart
