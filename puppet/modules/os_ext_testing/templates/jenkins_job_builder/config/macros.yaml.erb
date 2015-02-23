@@ -243,3 +243,40 @@
     publishers:
       - zuul-swift-upload-logs:
           upload_source: 'logs'
+
+- builder:
+    name: osci-swift-upload-logs-with-console
+    builders:
+      - shell: "/usr/local/jenkins/slave_scripts/grab_console_log.sh"
+      - shell: |
+          #!/bin/sh
+	  virtualenv osci
+	  cd osci
+	  . bin/activate
+	  git clone https://github.com/citrix-openstack/openstack-citrix-ci openstack-citrix-ci
+	  pip install -r openstack-citrix-ci/requirements.txt
+	  pip install -e openstack-citrix-ci
+	  # For some reason we have to upgrade requests...
+	  pip install --upgrade requests>=2.2.0,!=2.5.0
+          sudo mkdir -p /etc/osci/
+          cat | sudo tee /etc/osci/osci.config << EOF
+          SWIFT_API_KEY=$SWIFT_API_KEY
+          SWIFT_USERNAME=citrix.nodepool2
+          SWIFT_REGION=IAD
+          SWIFT_CONTAINER=XenLogs
+          EOF
+          osci-upload {upload_source} $LOG_PATH
+
+
+- publisher:
+    name: osci-swift-upload-logs-with-console
+    publishers:
+      - postbuildscript:
+          builders:
+            - osci-swift-upload-logs-with-console:
+                upload_source: '{upload_source}'
+          # These flags really mean only if on * when
+          # checked. When both set to false the post script
+          # should run on every job regardless of status.
+          onfailure: False
+          onsuccess: False

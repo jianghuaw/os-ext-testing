@@ -21,6 +21,7 @@ class os_ext_testing::zuul(
   $swift_region_name = '',
   $swift_default_container = '',
   $swift_default_logserver_prefix = '',
+  $swift_default_expiry = 7200,
   $statsd_host = '',
   $project_config_repo = '',
   $layout_dir = '',
@@ -55,6 +56,7 @@ class os_ext_testing::zuul(
     swift_region_name              => $swift_region_name,
     swift_default_container        => $swift_default_container,
     swift_default_logserver_prefix => $swift_default_logserver_prefix,
+    swift_default_expiry           => $swift_default_expiry,
   }
 
   if $project_config_repo != '' {
