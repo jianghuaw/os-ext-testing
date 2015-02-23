@@ -250,14 +250,14 @@
       - shell: "/usr/local/jenkins/slave_scripts/grab_console_log.sh"
       - shell: |
           #!/bin/sh
-	  virtualenv osci
-	  cd osci
-	  . bin/activate
-	  git clone https://github.com/citrix-openstack/openstack-citrix-ci openstack-citrix-ci
-	  pip install -r openstack-citrix-ci/requirements.txt
-	  pip install -e openstack-citrix-ci
-	  # For some reason we have to upgrade requests...
-	  pip install --upgrade requests>=2.2.0,!=2.5.0
+          virtualenv osci
+          cd osci
+          . bin/activate
+          git clone https://github.com/citrix-openstack/openstack-citrix-ci openstack-citrix-ci
+          pip install -r openstack-citrix-ci/requirements.txt
+          pip install -e openstack-citrix-ci
+          # For some reason we have to upgrade requests...
+          pip install --upgrade requests>=2.2.0,!=2.5.0
           sudo mkdir -p /etc/osci/
           cat | sudo tee /etc/osci/osci.config << EOF
           SWIFT_API_KEY=$SWIFT_API_KEY
