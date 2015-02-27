@@ -85,14 +85,6 @@ else
     JENKINS_SSH_PUBLIC_KEY_NO_WHITESPACE=`sudo cat $DATA_PATH/$JENKINS_SSH_KEY_PATH.pub | cut -d' ' -f 2`
 fi
 
-# Copy over the nodepool template
-if [[ ! -e "$DATA_PATH/etc/nodepool/nodepool.yaml.erb" ]]; then
-    echo "Expected to find nodepool template at $DATA_PATH/etc/nodepool/nodepool.yaml.erb, but wasn't found. Please create this using the sample provided. Exiting."
-    exit 1
-else
-    cp -f $DATA_PATH/etc/nodepool/nodepool.yaml.erb $OSEXT_PATH/puppet/modules/os_ext_testing/templates/nodepool
-fi
-
 PUBLISH_HOST=${PUBLISH_HOST:-localhost}
 
 if [[ -z $UPSTREAM_GERRIT_SERVER ]]; then
@@ -158,7 +150,10 @@ sudo puppet apply --verbose $PUPPET_MODULE_PATH -e "class {'os_ext_testing::mast
 #Not sure why nodepool private key is not getting set in the puppet scripts
 sudo cp $DATA_PATH/$JENKINS_SSH_KEY_PATH /home/nodepool/.ssh/id_rsa
 sudo cp $DATA_PATH/nodepool-scripts/* /etc/nodepool/scripts
+
+# Patch nodepool to support config drive - waiting for https://review.openstack.org/#/c/155770/ to be merged
 cd /usr/local/lib/python2.7/dist-packages/nodepool
 sudo patch -N -p2 < $DATA_PATH/config_drive.patch
-sudo rm /etc/apache2/sites-enabled/50-jenkins.conf
-sudo service apache2 restart
+
+# sudo rm /etc/apache2/sites-enabled/50-jenkins.conf
+# sudo service apache2 restart

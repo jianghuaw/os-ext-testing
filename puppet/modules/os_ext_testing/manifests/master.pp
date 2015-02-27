@@ -56,7 +56,7 @@ class os_ext_testing::master (
   include os_ext_testing::base
 
   class { 'openstackci::jenkins_master':
-    vhost_name              => "jenkins",
+    vhost_name              => "jenkins.openstack.xenproject.org",
     serveradmin             => $serveradmin,
     logo                    => 'openstack.png',
     jenkins_ssh_private_key => $jenkins_ssh_private_key,
@@ -79,12 +79,39 @@ class os_ext_testing::master (
       config_dir =>"${data_repo_dir}/etc/jenkins_jobs/config/",
     }
 
+    file { '/etc/jenkins_jobs/config/defaults.yaml':
+      ensure => present,
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0755',
+      content => template('os_ext_testing/jenkins_job_builder/config/defaults.yaml.erb'),
+      notify  => Exec['jenkins_jobs_update'],
+    }
+
     file { '/etc/jenkins_jobs/config/macros.yaml':
       ensure => present,
       owner  => 'root',
       group  => 'root',
       mode   => '0755',
       content => template('os_ext_testing/jenkins_job_builder/config/macros.yaml.erb'),
+      notify  => Exec['jenkins_jobs_update'],
+    }
+
+    file { '/etc/jenkins_jobs/config/jobs.yaml':
+      ensure => present,
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0755',
+      content => template('os_ext_testing/jenkins_job_builder/config/jobs.yaml.erb'),
+      notify  => Exec['jenkins_jobs_update'],
+    }
+
+    file { '/etc/jenkins_jobs/config/projects.yaml':
+      ensure => present,
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0755',
+      content => template('os_ext_testing/jenkins_job_builder/config/projects.yaml.erb'),
       notify  => Exec['jenkins_jobs_update'],
     }
   }

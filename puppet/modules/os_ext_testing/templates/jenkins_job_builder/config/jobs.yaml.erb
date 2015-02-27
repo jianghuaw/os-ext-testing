@@ -1,0 +1,62 @@
+- job-template:
+    name: 'noop-check-communication'
+    node: '{node}'
+
+    builders:
+      - shell: |
+          #!/bin/bash -xe
+          echo "Hello world, this is the {vendor} Testing System"
+      - link-logs  # In macros.yaml from os-ext-testing
+
+- job-template:
+    name: 'dsvm-tempest-xen'
+    node: '{node}'
+
+    wrappers:
+      - timeout:
+          timeout: 185  # Timeout in *minutes*
+          fail: true  # A job run that exceeds the timeout will cause a failure
+      - timestamps
+
+    builders:
+      - net-info
+      - devstack-checkout
+      - shell: |
+          #!/bin/bash -xe
+
+          function pre_test_hook {{
+              echo "Install thirdparty libraries"
+              sudo dpkg -i /opt/nodepool-scripts/*.deb
+              sudo apt-get install -y -f --fix-missing
+
+              echo "Configure localrc file to use libvirt+Xen"
+              cat <<EOF >>$BASE/new/devstack/localrc
+          VIRT_DRIVER=libvirt
+          LIBVIRT_TYPE=xen
+          API_WORKERS=3
+          EOF
+          }}
+
+          export -f pre_test_hook
+
+          # To keep our configuration in localrc
+          export KEEP_LOCALRC=true
+
+          if [ -z $ZUUL_PROJECT ]; then
+              export ZUUL_PROJECT=openstack-dev/sandbox
+          fi
+          if [ -z $ZUUL_BRANCH ]; then
+              export ZUUL_BRANCH=master
+          fi
+          export PYTHONUNBUFFERED=true
+          export DEVSTACK_GATE_TIMEOUT=180
+          export DEVSTACK_GATE_TEMPEST=1
+          export DEVSTACK_GATE_TEMPEST_DISABLE_TENANT_ISOLATION=1
+          export RE_EXEC=true
+          cp devstack-gate/devstack-vm-gate-wrap.sh ./safe-devstack-vm-gate-wrap.sh
+          ./safe-devstack-vm-gate-wrap.sh
+      - link-logs  # In macros.yaml from os-ext-testing
+
+    publishers:
+      - osci-swift-upload-logs-with-console:
+          upload_source: 'logs'
