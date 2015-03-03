@@ -96,24 +96,6 @@ class os_ext_testing::master (
       content => template('os_ext_testing/jenkins_job_builder/config/macros.yaml.erb'),
       notify  => Exec['jenkins_jobs_update'],
     }
-
-    file { '/etc/jenkins_jobs/config/jobs.yaml':
-      ensure => present,
-      owner  => 'root',
-      group  => 'root',
-      mode   => '0755',
-      content => template('os_ext_testing/jenkins_job_builder/config/jobs.yaml.erb'),
-      notify  => Exec['jenkins_jobs_update'],
-    }
-
-    file { '/etc/jenkins_jobs/config/projects.yaml':
-      ensure => present,
-      owner  => 'root',
-      group  => 'root',
-      mode   => '0755',
-      content => template('os_ext_testing/jenkins_job_builder/config/projects.yaml.erb'),
-      notify  => Exec['jenkins_jobs_update'],
-    }
   }
 
   class { 'os_ext_testing::zuul':
