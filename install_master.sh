@@ -54,7 +54,7 @@ if [[ "$PULL_LATEST_OSEXT_REPO" == "1" ]]; then
 fi
 
 # Pulling in variables from data repository
-. $OS_EXT_PATH/public_vars.sh
+. $OSEXT_PATH/public_vars.sh
 . $DATA_PATH/private-vars.sh
 
 # Validate that the upstream gerrit user and key are present in the data
