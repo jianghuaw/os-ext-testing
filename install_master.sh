@@ -1,0 +1,160 @@
+#! /usr/bin/env bash
+
+# Sets up a master Jenkins server and associated machinery like
+# Zuul, JJB, Gearman, etc.
+
+set -e
+
+THIS_DIR=`pwd`
+
+DATA_PATH=/root/os-ext-data
+OSEXT_PATH=/root/os-ext-testing
+OSEXT_REPO=https://github.com/citrix-openstack/os-ext-testing
+OSEXT_BRANCH=master
+PUPPET_MODULE_PATH="--modulepath=$OSEXT_PATH/puppet/modules:/root/system-config/modules:/etc/puppet/modules"
+
+if ! sudo test -d /root/system-config; then
+  sudo git clone https://review.openstack.org/p/openstack-infra/system-config.git \
+    /root/system-config
+fi
+
+if ! sudo test -d /root/project-config; then
+  sudo git clone https://github.com/openstack-infra/project-config.git \
+    /root/project-config
+fi
+
+# Install Puppet and the OpenStack Infra Config source tree
+# TODO(Ramy) Make sure sudo has http proxy settings...
+if [[ ! -e install_puppet.sh ]]; then
+  wget https://git.openstack.org/cgit/openstack-infra/system-config/plain/install_puppet.sh
+  sudo bash -xe install_puppet.sh
+  sudo /bin/bash /root/system-config/install_modules.sh
+fi
+
+# Update /root/system-config
+echo "Update system-config"
+sudo git  --work-tree=/root/system-config/ --git-dir=/root/system-config/.git remote update
+sudo git  --work-tree=/root/system-config/ --git-dir=/root/system-config/.git pull
+# Puppet module splits requires re-installing modules from the new location
+sudo /bin/bash /root/system-config/install_modules.sh
+
+echo "Update project-config"
+sudo git  --work-tree=/root/project-config/ --git-dir=/root/project-config/.git remote update
+sudo git  --work-tree=/root/project-config/ --git-dir=/root/project-config/.git pull
+
+# Clone or pull the the os-ext-testing repository
+if [[ ! -d $OSEXT_PATH ]]; then
+    echo "Cloning os-ext-testing repo..."
+    git clone -b $OSEXT_BRANCH $OSEXT_REPO $OSEXT_PATH
+fi
+
+if [[ "$PULL_LATEST_OSEXT_REPO" == "1" ]]; then
+    echo "Pulling latest os-ext-testing repo master..."
+    cd $OSEXT_PATH; git checkout $OSEXT_BRANCH && sudo git pull; cd $THIS_DIR
+fi
+
+# Pulling in variables from data repository
+. public-vars.sh
+. $DATA_PATH/private-vars.sh
+
+# Validate that the upstream gerrit user and key are present in the data
+# repository
+if [[ -z $UPSTREAM_GERRIT_USER ]]; then
+    echo "Expected to find UPSTREAM_GERRIT_USER in $DATA_PATH/vars.sh. Please correct. Exiting."
+    exit 1
+else
+    echo "Using upstream Gerrit user: $UPSTREAM_GERRIT_USER"
+fi
+
+if [[ ! -e "$DATA_PATH/$UPSTREAM_GERRIT_SSH_KEY_PATH" ]]; then
+    echo "Expected to find $UPSTREAM_GERRIT_SSH_KEY_PATH in $DATA_PATH. Please correct. Exiting."
+    exit 1
+fi
+export UPSTREAM_GERRIT_SSH_PRIVATE_KEY_CONTENTS=`cat "$DATA_PATH/$UPSTREAM_GERRIT_SSH_KEY_PATH"`
+
+# Validate there is a Jenkins SSH key pair in the data repository
+if [[ -z $JENKINS_SSH_KEY_PATH ]]; then
+    echo "Expected to find JENKINS_SSH_KEY_PATH in $DATA_PATH/vars.sh. Please correct. Exiting."
+    exit 1
+elif [[ ! -e "$DATA_PATH/$JENKINS_SSH_KEY_PATH" ]]; then
+    echo "Expected to find Jenkins SSH key pair at $DATA_PATH/$JENKINS_SSH_KEY_PATH, but wasn't found. Please correct. Exiting."
+    exit 1
+else
+    echo "Using Jenkins SSH key path: $DATA_PATH/$JENKINS_SSH_KEY_PATH"
+    JENKINS_SSH_PRIVATE_KEY_CONTENTS=`sudo cat $DATA_PATH/$JENKINS_SSH_KEY_PATH`
+    JENKINS_SSH_PUBLIC_KEY_CONTENTS=`sudo cat $DATA_PATH/$JENKINS_SSH_KEY_PATH.pub`
+    JENKINS_SSH_PUBLIC_KEY_NO_WHITESPACE=`sudo cat $DATA_PATH/$JENKINS_SSH_KEY_PATH.pub | cut -d' ' -f 2`
+fi
+
+PUBLISH_HOST=${PUBLISH_HOST:-localhost}
+
+if [[ -z $UPSTREAM_GERRIT_SERVER ]]; then
+    UPSTREAM_GERRIT_SERVER="review.openstack.org"
+fi
+
+gerrit_args="upstream_gerrit_server => '$UPSTREAM_GERRIT_SERVER',
+upstream_gerrit_user => '$UPSTREAM_GERRIT_USER',
+upstream_gerrit_ssh_private_key => '$UPSTREAM_GERRIT_SSH_PRIVATE_KEY_CONTENTS',
+upstream_gerrit_ssh_host_key => '$UPSTREAM_GERRIT_SSH_HOST_KEY',"
+
+if [[ -n $UPSTREAM_GERRIT_BASEURL ]]; then
+    gerrit_args="$gerrit_args upstream_gerrit_baseurl => '$UPSTREAM_GERRIT_BASEURL', "
+fi
+
+zuul_args="git_email => '$GIT_EMAIL',
+git_name => '$GIT_NAME',
+publish_host => '$PUBLISH_HOST',
+data_repo_dir => '$DATA_PATH',"
+if [[ -n $URL_PATTERN ]]; then
+    zuul_args="$zuul_args url_pattern => '$URL_PATTERN', "
+fi
+if [[ -n $SMTP_HOST ]]; then
+    zuul_args="$zuul_args smtp_host => '$SMTP_HOST', "
+fi
+
+if [[ -n $SWIFT_AUTHURL ]]; then
+    zuul_args="$zuul_args
+  swift_authurl => '$SWIFT_AUTHURL',
+  swift_auth_version => '$SWIFT_AUTH_VERSION',
+  swift_user => '$SWIFT_USER',
+  swift_key => '$SWIFT_KEY',
+  swift_tenant_name => '$SWIFT_TENANT_NAME',
+  swift_region_name => '$SWIFT_REGION_NAME',
+  swift_default_container => '$SWIFT_DEFAULT_CONTAINER',
+  swift_default_logserver_prefix => '$SWIFT_DEFAULT_LOGSERVER_PREFIX',"
+fi
+
+nodepool_args="mysql_root_password => '$MYSQL_ROOT_PASSWORD',
+               mysql_password => '$MYSQL_PASSWORD',
+               provider_username => '$PROVIDER_USERNAME',
+               provider_password => '$PROVIDER_PASSWORD',
+               provider_image_name => '$PROVIDER_IMAGE_NAME',"
+
+if [[ -n $PROVIDER_IMAGE_SETUP_SCRIPT_NAME ]]; then
+    nodepool_args="$nodepool_args provider_image_setup_script_name => '$PROVIDER_IMAGE_SETUP_SCRIPT_NAME', "
+fi
+
+jenkins_args="jenkins_ssh_public_key => '$JENKINS_SSH_PUBLIC_KEY_CONTENTS',
+              jenkins_ssh_private_key => '$JENKINS_SSH_PRIVATE_KEY_CONTENTS',
+              jenkins_api_user => '$JENKINS_API_USER',
+              jenkins_api_key => '$JENKINS_API_KEY',
+              jenkins_credentials_id => '$JENKINS_CREDENTIALS_ID',
+              jenkins_ssh_public_key_no_whitespace => '$JENKINS_SSH_PUBLIC_KEY_NO_WHITESPACE',"
+
+proxy_args="http_proxy => '$HTTP_PROXY',
+            https_proxy => '$HTTPS_PROXY',
+            no_proxy => '$NO_PROXY',"
+
+CLASS_ARGS="$gerrit_args $zuul_args $nodepool_args $jenkins_args $proxy_args"
+sudo puppet apply --verbose $PUPPET_MODULE_PATH -e "class {'os_ext_testing::master': $CLASS_ARGS }"
+
+#Not sure why nodepool private key is not getting set in the puppet scripts
+sudo cp $DATA_PATH/$JENKINS_SSH_KEY_PATH /home/nodepool/.ssh/id_rsa
+sudo cp $OSEXT_PATH/nodepool-scripts/* /etc/nodepool/scripts
+
+# Patch nodepool to support config drive - waiting for https://review.openstack.org/#/c/155770/ to be merged
+cd /usr/local/lib/python2.7/dist-packages/nodepool
+sudo patch -N -p2 < $OS_EXT_PATH/config_drive.patch
+
+sudo echo $SWIFT_API_KEY > /etc/swift_api_key
+sudo chown jenkins.jenkins /etc/swift_api_key
