@@ -5,6 +5,5 @@
     vendor: citrix
 
     jobs:
-#        - noop-check-communication
         - dsvm-tempest-xen:
             node: 'ds-xen'

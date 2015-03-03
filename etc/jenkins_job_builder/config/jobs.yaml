@@ -1,14 +1,4 @@
 - job-template:
-    name: 'noop-check-communication'
-    node: '{node}'
-
-    builders:
-      - shell: |
-          #!/bin/bash -xe
-          echo "Hello world, this is the {vendor} Testing System"
-      - link-logs  # In macros.yaml from os-ext-testing
-
-- job-template:
     name: 'dsvm-tempest-xen'
     node: '{node}'
 

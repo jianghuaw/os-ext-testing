@@ -74,8 +74,8 @@ class os_ext_testing::master (
   if $manage_jenkins_jobs == true {
     class { '::jenkins::job_builder':
       url      => "http://127.0.0.1:8080/",
-      username => 'jenkins',
-      password => '',
+      username => $jenkins_api_user,
+      password => $jenkins_api_key,
       config_dir =>"${data_repo_dir}/etc/jenkins_jobs/config/",
     }
 

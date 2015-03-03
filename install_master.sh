@@ -104,7 +104,7 @@ fi
 zuul_args="git_email => '$GIT_EMAIL',
 git_name => '$GIT_NAME',
 publish_host => '$PUBLISH_HOST',
-data_repo_dir => '$DATA_PATH',"
+data_repo_dir => '$OSEXT_PATH',"
 if [[ -n $URL_PATTERN ]]; then
     zuul_args="$zuul_args url_pattern => '$URL_PATTERN', "
 fi
@@ -154,7 +154,7 @@ sudo cp $OSEXT_PATH/nodepool-scripts/* /etc/nodepool/scripts
 
 # Patch nodepool to support config drive - waiting for https://review.openstack.org/#/c/155770/ to be merged
 cd /usr/local/lib/python2.7/dist-packages/nodepool
-sudo patch -N -p2 < $OS_EXT_PATH/config_drive.patch
+sudo patch -N -p2 < $OSEXT_PATH/config_drive.patch
 
 sudo echo $SWIFT_API_KEY > /etc/swift_api_key
 sudo chown jenkins.jenkins /etc/swift_api_key
