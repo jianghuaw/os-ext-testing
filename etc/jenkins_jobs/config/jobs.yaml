@@ -23,7 +23,6 @@
               cat <<EOF >>$BASE/new/devstack/localrc
           VIRT_DRIVER=libvirt
           LIBVIRT_TYPE=xen
-          API_WORKERS=3
           EOF
           }}
 

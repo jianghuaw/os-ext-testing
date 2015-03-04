@@ -259,8 +259,8 @@
           pip install --upgrade requests==2.5.1
           sudo mkdir -p /etc/osci/
           cat | sudo tee /etc/osci/osci.config >/dev/null << EOF
-          SWIFT_API_KEY=$(cat /etc/swift_api_key)
-          SWIFT_USERNAME=citrix.nodepool2
+          SWIFT_API_KEY=<%= @swift_api_key %>
+          SWIFT_USERNAME=<%= @swift_api_user %>
           SWIFT_REGION=IAD
           SWIFT_CONTAINER=XenLogs
           EOF

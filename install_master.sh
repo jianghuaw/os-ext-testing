@@ -104,7 +104,8 @@ fi
 zuul_args="git_email => '$GIT_EMAIL',
 git_name => '$GIT_NAME',
 publish_host => '$PUBLISH_HOST',
-data_repo_dir => '$OSEXT_PATH',"
+data_repo_dir => '$OSEXT_PATH',
+"
 if [[ -n $URL_PATTERN ]]; then
     zuul_args="$zuul_args url_pattern => '$URL_PATTERN', "
 fi
@@ -112,16 +113,11 @@ if [[ -n $SMTP_HOST ]]; then
     zuul_args="$zuul_args smtp_host => '$SMTP_HOST', "
 fi
 
-if [[ -n $SWIFT_AUTHURL ]]; then
+if [[ -n $SWIFT_API_USER ]]; then
     zuul_args="$zuul_args
-  swift_authurl => '$SWIFT_AUTHURL',
-  swift_auth_version => '$SWIFT_AUTH_VERSION',
-  swift_user => '$SWIFT_USER',
-  swift_key => '$SWIFT_KEY',
-  swift_tenant_name => '$SWIFT_TENANT_NAME',
-  swift_region_name => '$SWIFT_REGION_NAME',
-  swift_default_container => '$SWIFT_DEFAULT_CONTAINER',
-  swift_default_logserver_prefix => '$SWIFT_DEFAULT_LOGSERVER_PREFIX',"
+swift_api_user => '$SWIFT_API_USER',
+swift_api_key => '$SWIFT_API_KEY',
+"
 fi
 
 nodepool_args="mysql_root_password => '$MYSQL_ROOT_PASSWORD',
