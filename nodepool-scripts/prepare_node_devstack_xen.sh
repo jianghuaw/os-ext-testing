@@ -48,5 +48,12 @@ auto lo
 iface lo inet loopback
 EOF
 
+# Create a swap file
+sudo dd if=/dev/zero of=/swapfile bs=1024 count=524288
+sudo chown root:root /swapfile
+sudo chmod 0600 /swapfile
+sudo mkswap /swapfile
+echo "/swapfile	none	swap	sw	0	0" | sudo tee -a /etc/fstab
+
 sync
 sleep 5
