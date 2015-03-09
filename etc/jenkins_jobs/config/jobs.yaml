@@ -17,8 +17,8 @@
           function pre_test_hook {{
               echo "Install thirdparty libraries"
 
-	      # Install libvirt here to ensure it is
-	      # not replaced devstack
+              # Install libvirt here to ensure it is
+              # not replaced devstack
               sudo dpkg -i /opt/nodepool-scripts/*.deb
               sudo apt-get install -y -f --fix-missing
 

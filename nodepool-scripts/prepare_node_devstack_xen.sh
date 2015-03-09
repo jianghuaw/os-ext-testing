@@ -20,7 +20,7 @@ EOC
 sudo mv /etc/default/grub.d/xen.cfg{,.bak}
 sudo tee /etc/default/grub.d/xen.cfg << EOC
 echo "Including Xen overrides from /etc/default/grub.d/xen.cfg"
-GRUB_CMDLINE_XEN="console=vga"
+GRUB_CMDLINE_XEN="dom0_mem=7680M:max=7680M dom0_max_vcpus=4 max-console=vga"
 GRUB_DEFAULT="Ubuntu GNU/Linux, with Xen hypervisor"
 EOC
 

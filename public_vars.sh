@@ -11,5 +11,5 @@ export PROVIDER_IMAGE_SETUP_SCRIPT_NAME="prepare_node_devstack_xen.sh"
 export SWIFT_AUTHURL=https://identity.api.rackspacecloud.com/v2.0/
 export SWIFT_REGION_NAME=IAD
 export SWIFT_DEFAULT_CONTAINER=XenLogs
-export PUBLISH_HOST=http://logs.openstack.xenproject.org/
+export PUBLISH_HOST=logs.openstack.xenproject.org
 export SWIFT_DEFAULT_LOGSERVER_PREFIX=${PUBLISH_HOST}
