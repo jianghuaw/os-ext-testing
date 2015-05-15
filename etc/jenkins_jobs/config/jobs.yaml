@@ -21,18 +21,19 @@
               # not replaced devstack
               sudo dpkg -i /opt/nodepool-scripts/*.deb
               sudo apt-get install -y -f --fix-missing
+          }}
 
-              echo "Configure localrc file to use libvirt+Xen"
-              cat <<EOF >>$BASE/new/devstack/localrc
-          VIRT_DRIVER=libvirt
-          LIBVIRT_TYPE=xen
-          EOF
+          function cleanup_host_hook {{
+              echo "Copying custom logs"
+
+              # Xen logs
+              if [ -d /var/log/xen ]; then
+                  sudo cp -r /var/log/xen $BASE/logs/
+              fi
           }}
 
           export -f pre_test_hook
-
-          # To keep our configuration in localrc
-          export KEEP_LOCALRC=true
+          export -f cleanup_host_hook
 
           if [ -z $ZUUL_PROJECT ]; then
               export ZUUL_PROJECT=openstack-dev/sandbox
@@ -41,9 +42,11 @@
               export ZUUL_BRANCH=master
           fi
           export PYTHONUNBUFFERED=true
-          export DEVSTACK_GATE_TIMEOUT=180
           export DEVSTACK_GATE_TEMPEST=1
-          export DEVSTACK_GATE_TEMPEST_DISABLE_TENANT_ISOLATION=1
+          export DEVSTACK_GATE_VIRT_DRIVER=libvirt
+          export DEVSTACK_GATE_LIBVIRT_TYPE=xen
+          export DEVSTACK_GATE_TIMEOUT=180
+          export DEVSTACK_GATE_TEMPEST_REGEX='(?!.*\[.*\bslow\b.*\]|.*test_volume_boot_pattern)(^tempest\.(api|scenario|thirdparty))'
           export RE_EXEC=true
           cp devstack-gate/devstack-vm-gate-wrap.sh ./safe-devstack-vm-gate-wrap.sh
           ./safe-devstack-vm-gate-wrap.sh

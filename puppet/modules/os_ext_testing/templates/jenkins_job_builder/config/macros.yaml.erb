@@ -255,8 +255,8 @@
           git clone https://github.com/citrix-openstack/openstack-citrix-ci openstack-citrix-ci
           pip install -r openstack-citrix-ci/requirements.txt
           pip install -e openstack-citrix-ci
-          # For some reason we have to upgrade requests...
-          pip install --upgrade requests==2.5.1
+          # CA bundle in 2.5.2 is broken
+          pip install --upgrade requests>2.5.2
           sudo mkdir -p /etc/osci/
           cat | sudo tee /etc/osci/osci.config >/dev/null << EOF
           SWIFT_API_KEY=<%= @swift_api_key %>

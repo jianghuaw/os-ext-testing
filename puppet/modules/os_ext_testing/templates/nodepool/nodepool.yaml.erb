@@ -5,7 +5,7 @@ dburi: 'mysql://nodepool:<%= mysql_password %>@localhost/nodepool'
 cron:
   cleanup: '*/1 * * * *'
   check: '*/15 * * * *'
-  image-update: '14 14 * * *'
+  image-update: '12 14 * * *'
 
 zmq-publishers:
   - tcp://localhost:8888
@@ -56,6 +56,7 @@ providers:
     auth-url: 'https://identity.api.rackspacecloud.com/v2.0/'
     boot-timeout: 600
     max-servers: 5
+    rate: 10.0
     keypair: 'xenproject-nodepool'
     template-hostname: '{image.name}-{timestamp}.template.xen.org'
     images:

@@ -3,22 +3,50 @@ includes:
   - python-file: openstack_functions.py
 
 pipelines:
-  - name: check
-    description: Newly uploaded patchsets enter this pipeline to receive an initial +/-1 Verified vote from Jenkins.
-    failure-message: "Build failed.  For information on how to proceed, see https://wiki.openstack.org/wiki/GerritJenkinsGit#Test_Failures. For 3rd party ci contact info: https://wiki.openstack.org/wiki/ThirdPartySystems/"
+  - name: commentonly
+    description: Newly uploaded patchsets enter this pipeline to receive a passed comment if the job succeeds only.
+    failure-message: "Build failed.  To recheck use 'xen: recheck'.  For 3rd party ci contact info: https://wiki.openstack.org/wiki/ThirdPartySystems"
     manager: IndependentPipelineManager
     trigger:
       gerrit:
         - event: patchset-created
+          branch: ^master.*$
         - event: change-restored
+          branch: ^master.*$
+        - event: comment-added
+          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*recheck(( (?:bug|lp)[\s#:]*(\d+))|( no bug))\s*$
+          branch: ^master.*$
+        - event: comment-added
+          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*recheck(( (?:bug|lp)[\s#:]*(\d+))|( xen))\s*$
+          branch: ^master.*$
+        - event: comment-added
+          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*xen[\s:]*recheck(( (?:bug|lp)[\s#:]*(\d+))|)\s*$
+          branch: ^master.*$
+    success:
+      gerrit: {}
+    failure:
+      gerrit: {}
+
+  - name: check
+    description: Newly uploaded patchsets enter this pipeline to receive an initial +/-1 Verified vote from Jenkins.
+    failure-message: "Build failed.  To recheck use 'xen: recheck'.  For 3rd party ci contact info: https://wiki.openstack.org/wiki/ThirdPartySystems"
+    manager: IndependentPipelineManager
+    trigger:
+      gerrit:
+        - event: patchset-created
+          branch: ^master.*$
+        - event: change-restored
+          branch: ^master.*$
         - event: comment-added
 
           comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*recheck(( (?:bug|lp)[\s#:]*(\d+))|( no bug))\s*$
-        # Change "myvendor" below to your vendor's name to add a custom
-        # recheck trigger that runs the check pipeline jobs when someone
-        # adds a comment to a review that says "recheck $VENDOR".
+          branch: ^master.*$
         - event: comment-added
           comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*recheck(( (?:bug|lp)[\s#:]*(\d+))|( xen))\s*$
+          branch: ^master.*$
+        - event: comment-added
+          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*xen[\s:]*recheck(( (?:bug|lp)[\s#:]*(\d+))|)\s*$
+          branch: ^master.*$
     success:
       gerrit:
         verified: 1
@@ -46,25 +74,605 @@ pipelines:
 
 jobs:
   - name: ^dsvm-tempest.*$
+    skip-if:
+    - project: ^openstack/nova$
+      branch: ^master$
+      all-files-match-any:
+        - ^.*\.rst$
+        - ^doc/.*$
+        - ^nova/tests/.*$
+        - ^nova/virt/baremetal/.*$
+        - ^nova/virt/hyperv/.*$
+        - ^nova/virt/ironic/.*$
+        - ^nova/virt/vmwareapi/.*$
+        - ^nova/virt/xenapi/.*$
+        - ^tools/.*$
+        - ^tox.ini$
     parameter-function: single_use_node
+    branch: ^master.*$
     swift:
       - name: logs
+
 
 projects:
   - name: openstack-dev/sandbox
     check:
-      # Remove this after successfully verifying communication with upstream
-      # and seeing a posted successful review.
-      # - noop-check-communication
-      # Uncomment this job when you have a jenkins slave running and want to
-      # test a full Tempest run within devstack.
       - dsvm-tempest-xen
 
   - name: openstack/nova
-    silent:
-      # Remove this after successfully verifying communication with upstream
-      # and seeing a posted successful review.
-      # - noop-check-communication
-      # Uncomment this job when you have a jenkins slave running and want to
-      # test a full Tempest run within devstack.
+    check:
       - dsvm-tempest-xen
+
+  - name: openstack/barbican
+  - name: openstack/barbican-specs
+  - name: openstack/ceilometer
+  - name: openstack/ceilometer-specs
+  - name: openstack/ceilometermiddleware
+  - name: openstack/cinder
+  - name: openstack/cinder-specs
+  - name: openstack/designate
+  - name: openstack/designate-specs
+  - name: openstack/gantt
+  - name: openstack/glance
+  - name: openstack/glance-specs
+  - name: openstack/glance_store
+  - name: openstack/heat
+  - name: openstack/heat-specs
+  - name: openstack/heat-translator
+  - name: openstack/horizon
+  - name: openstack/ironic
+  - name: openstack/ironic-specs
+  - name: openstack/keystone
+  - name: openstack/keystone-specs
+  - name: openstack/keystonemiddleware
+  - name: openstack/kite
+  - name: openstack/manila
+  - name: openstack/neutron
+  - name: openstack/neutron-fwaas
+  - name: openstack/neutron-lbaas
+  - name: openstack/neutron-specs
+  - name: openstack/neutron-vpnaas
+#  - name: openstack/nova
+  - name: openstack/nova-specs
+  - name: openstack/pycadf
+  - name: openstack/sahara
+  - name: openstack/sahara-specs
+  - name: openstack/swift
+  - name: openstack/swift-specs
+  - name: openstack/trove
+  - name: openstack/trove-specs
+  - name: openstack/tuskar
+  - name: openstack/zaqar
+  - name: openstack/zaqar-specs
+  - name: openstack/python-barbicanclient
+  - name: openstack/python-ceilometerclient
+  - name: openstack/python-cinderclient
+  - name: openstack/python-designateclient
+  - name: openstack/python-ganttclient
+  - name: openstack/python-glanceclient
+  - name: openstack/python-heatclient
+  - name: openstack/python-ironicclient
+  - name: openstack/python-keystoneclient
+  - name: openstack/python-keystoneclient-federation
+  - name: openstack/python-keystoneclient-kerberos
+  - name: openstack/python-kiteclient
+  - name: openstack/python-manilaclient
+  - name: openstack/python-neutronclient
+  - name: openstack/python-novaclient
+  - name: openstack/python-openstackclient
+  - name: openstack/python-saharaclient
+  - name: openstack/python-swiftclient
+  - name: openstack/python-troveclient
+  - name: openstack/python-tuskarclient
+  - name: openstack/python-zaqarclient
+  - name: openstack/cliff
+  - name: openstack/debtcollector
+  - name: openstack/oslo-incubator
+  - name: openstack/oslo-specs
+  - name: openstack/oslo.concurrency
+  - name: openstack/oslo.config
+  - name: openstack/oslo.context
+  - name: openstack/oslo.db
+  - name: openstack/oslo.i18n
+  - name: openstack/oslo.log
+  - name: openstack/oslo.messaging
+  - name: openstack/oslo.middleware
+  - name: openstack/oslo.policy
+  - name: openstack/oslo.rootwrap
+  - name: openstack/oslo.serialization
+  - name: openstack/oslo.utils
+  - name: openstack/oslo.versionedobjects
+  - name: openstack/oslo.vmware
+  - name: openstack/oslosphinx
+  - name: openstack/oslotest
+  - name: openstack/pylockfile
+  - name: openstack/stevedore
+  - name: openstack/taskflow
+  - name: openstack/tooz
+  - name: openstack/api-wg
+  - name: openstack/castellan
+  - name: openstack/dib-utils
+  - name: openstack/diskimage-builder
+  - name: openstack/django_openstack_auth
+  - name: openstack/governance
+  - name: openstack/heat-cfntools
+  - name: openstack/heat-templates
+  - name: openstack/ironic-python-agent
+  - name: openstack/openstack
+  - name: openstack/openstack-planet
+  - name: openstack/openstack-specs
+  - name: openstack/os-apply-config
+  - name: openstack/os-brick
+  - name: openstack/os-cloud-config
+  - name: openstack/os-collect-config
+  - name: openstack/os-net-config
+  - name: openstack/os-refresh-config
+  - name: openstack/ossa
+  - name: openstack/requirements
+  - name: openstack/sahara-dashboard
+  - name: openstack/sahara-extra
+  - name: openstack/sahara-image-elements
+  - name: openstack/swift-bench
+  - name: z/tempest
+  - name: openstack/qa-specs
+  - name: openstack/tempest
+  - name: openstack/tempest-lib
+  - name: openstack/tripleo-heat-templates
+  - name: openstack/tripleo-image-elements
+  - name: openstack/tripleo-incubator
+  - name: openstack/tripleo-puppet-elements
+  - name: openstack/tripleo-specs
+  - name: openstack/trove-integration
+  - name: openstack/tuskar-ui
+  - name: openstack/api-site
+  - name: openstack/docs-specs
+  - name: openstack/ha-guide
+  - name: openstack/openstack-doc-tools
+  - name: openstack/openstack-manuals
+  - name: openstack/openstackdocstheme
+  - name: openstack/operations-guide
+  - name: openstack/security-doc
+  - name: openstack/training-guides
+  - name: openstack-dev/bashate
+  - name: openstack-dev/ci-sandbox
+  - name: openstack-dev/cookiecutter
+  - name: openstack-dev/devstack
+  - name: openstack-dev/devstack-vagrant
+  - name: openstack-dev/grenade
+  - name: openstack-dev/hacking
+  - name: openstack-dev/heat-cfnclient
+  - name: openstack-dev/openstack-nose
+  - name: openstack-dev/oslo-cookiecutter
+  - name: openstack-dev/pbr
+#  - name: openstack-dev/sandbox
+  - name: openstack-dev/specs-cookiecutter
+  - name: openstack-infra/activity-board
+  - name: openstack-infra/askbot-theme
+  - name: openstack-infra/bugdaystats
+  - name: openstack-infra/devstack-gate
+  - name: openstack-infra/elastic-recheck
+  - name: openstack-infra/gear
+  - name: openstack-infra/gearman-plugin
+  - name: openstack-infra/gerrit
+  - name: openstack-infra/gerritbot
+  - name: openstack-infra/gerritlib
+  - name: openstack-infra/git-review
+  - name: openstack-infra/gitdm
+  - name: openstack-infra/groups
+  - name: openstack-infra/groups-static-pages
+  - name: openstack-infra/infra-manual
+  - name: openstack-infra/infra-specs
+  - name: openstack-infra/irc-meetings
+  - name: openstack-infra/jeepyb
+  - name: openstack-infra/jenkins-job-builder
+  - name: openstack-infra/lodgeit
+  - name: openstack-infra/meetbot
+  - name: openstack-infra/nodepool
+  - name: openstack-infra/nose-html-output
+  - name: openstack-infra/odsreg
+  - name: openstack-infra/openstackid
+  - name: openstack-infra/openstackweb
+  - name: openstack-infra/os-loganalyze
+  - name: openstack-infra/project-config
+  - name: openstack-infra/publications
+  - name: openstack-infra/puppet-accessbot
+  - name: openstack-infra/puppet-ansible
+  - name: openstack-infra/puppet-apparmor
+  - name: openstack-infra/puppet-askbot
+  - name: openstack-infra/puppet-asterisk
+  - name: openstack-infra/puppet-bugdaystats
+  - name: openstack-infra/puppet-bup
+  - name: openstack-infra/puppet-cgit
+  - name: openstack-infra/puppet-dashboard
+  - name: openstack-infra/puppet-drupal
+  - name: openstack-infra/puppet-elastic_recheck
+  - name: openstack-infra/puppet-elasticsearch
+  - name: openstack-infra/puppet-etherpad_lite
+  - name: openstack-infra/puppet-exim
+  - name: openstack-infra/puppet-gerrit
+  - name: openstack-infra/puppet-gerritbot
+  - name: openstack-infra/puppet-github
+  - name: openstack-infra/puppet-graphite
+  - name: openstack-infra/puppet-haveged
+  - name: openstack-infra/puppet-httpd
+  - name: openstack-infra/puppet-iptables
+  - name: openstack-infra/puppet-jeepyb
+  - name: openstack-infra/puppet-jenkins
+  - name: openstack-infra/puppet-kerberos
+  - name: openstack-infra/puppet-kibana
+  - name: openstack-infra/puppet-lodgeit
+  - name: openstack-infra/puppet-log_processor
+  - name: openstack-infra/puppet-logrotate
+  - name: openstack-infra/puppet-logstash
+  - name: openstack-infra/puppet-mailman
+  - name: openstack-infra/puppet-mediawiki
+  - name: openstack-infra/puppet-meetbot
+  - name: openstack-infra/puppet-mysql_backup
+  - name: openstack-infra/puppet-nodepool
+  - name: openstack-infra/puppet-openafs
+  - name: openstack-infra/puppet-openstackid
+  - name: openstack-infra/puppet-packagekit
+  - name: openstack-infra/puppet-pip
+  - name: openstack-infra/puppet-planet
+  - name: openstack-infra/puppet-project_config
+  - name: openstack-infra/puppet-redis
+  - name: openstack-infra/puppet-releasestatus
+  - name: openstack-infra/puppet-reviewday
+  - name: openstack-infra/puppet-simpleproxy
+  - name: openstack-infra/puppet-snmpd
+  - name: openstack-infra/puppet-ssh
+  - name: openstack-infra/puppet-ssl_cert_check
+  - name: openstack-infra/puppet-statusbot
+  - name: openstack-infra/puppet-storyboard
+  - name: openstack-infra/puppet-subunit2sql
+  - name: openstack-infra/puppet-sudoers
+  - name: openstack-infra/puppet-tmpreaper
+  - name: openstack-infra/puppet-ulimit
+  - name: openstack-infra/puppet-unattended_upgrades
+  - name: openstack-infra/puppet-unbound
+  - name: openstack-infra/puppet-user
+  - name: openstack-infra/puppet-vcsrepo
+  - name: openstack-infra/puppet-vinz
+  - name: openstack-infra/puppet-yum
+  - name: openstack-infra/puppet-zanata
+  - name: openstack-infra/puppet-zuul
+  - name: openstack-infra/pypi-mirror
+  - name: openstack-infra/python-storyboardclient
+  - name: openstack-infra/release-tools
+  - name: openstack-infra/releasestatus
+  - name: openstack-infra/reviewday
+  - name: openstack-infra/reviewstats
+  - name: openstack-infra/shade
+  - name: openstack-infra/statusbot
+  - name: openstack-infra/storyboard
+  - name: openstack-infra/storyboard-webclient
+  - name: openstack-infra/subunit2sql
+  - name: openstack-infra/system-config
+  - name: openstack-infra/tripleo-ci
+  - name: openstack-infra/vinz
+  - name: openstack-infra/vinz-webclient
+  - name: openstack-infra/yaml2ical
+  - name: openstack-infra/zmq-event-publisher
+  - name: openstack-infra/zuul
+  - name: openstack-infra/zuul-packaging
+  - name: stackforge/anchor
+  - name: stackforge/anvil
+  - name: stackforge/aviator
+  - name: stackforge/bandit
+  - name: stackforge/billingstack
+  - name: stackforge/bindep
+  - name: stackforge/blazar
+  - name: stackforge/blazar-nova
+  - name: stackforge/bufunfa
+  - name: stackforge/cachemonkey
+  - name: stackforge/ceilometer-powervm
+  - name: stackforge/cerberus
+  - name: stackforge/cinder-salt-formula
+  - name: stackforge/cl-openstack-client
+  - name: stackforge/cloud-pydashie
+  - name: stackforge/cloudbase-init
+  - name: stackforge/cloudcafe
+  - name: stackforge/clouddocs-maven-plugin
+  - name: stackforge/cloudkitty
+  - name: stackforge/cloudkitty-dashboard
+  - name: stackforge/cloudroast
+  - name: stackforge/cloudv-ostf-adapter
+  - name: stackforge/cloudv-sdn-validation
+  - name: stackforge/compass-adapters
+  - name: stackforge/compass-core
+  - name: stackforge/compass-install
+  - name: stackforge/compass-monit
+  - name: stackforge/compass-specs
+  - name: stackforge/compass-web
+  - name: stackforge/congress
+  - name: stackforge/congress-specs
+  - name: stackforge/congressmiddleware
+  - name: stackforge/cookbook-monasca-agent
+  - name: stackforge/cookbook-monasca-api
+  - name: stackforge/cookbook-monasca-notification
+  - name: stackforge/cookbook-monasca-persister
+  - name: stackforge/cookbook-monasca-schema
+  - name: stackforge/cookbook-monasca-thresh
+  - name: stackforge/cookbook-openstack-bare-metal
+  - name: stackforge/cookbook-openstack-block-storage
+  - name: stackforge/cookbook-openstack-client
+  - name: stackforge/cookbook-openstack-common
+  - name: stackforge/cookbook-openstack-compute
+  - name: stackforge/cookbook-openstack-dashboard
+  - name: stackforge/cookbook-openstack-data-processing
+  - name: stackforge/cookbook-openstack-database
+  - name: stackforge/cookbook-openstack-identity
+  - name: stackforge/cookbook-openstack-image
+  - name: stackforge/cookbook-openstack-integration-test
+  - name: stackforge/cookbook-openstack-network
+  - name: stackforge/cookbook-openstack-object-storage
+  - name: stackforge/cookbook-openstack-ops-database
+  - name: stackforge/cookbook-openstack-ops-messaging
+  - name: stackforge/cookbook-openstack-orchestration
+  - name: stackforge/cookbook-openstack-telemetry
+  - name: stackforge/cookbook-pacemaker
+  - name: stackforge/cue
+  - name: stackforge/designate-msdnsagent
+  - name: stackforge/devstack-plugin-glusterfs
+  - name: stackforge/devstack-plugin-sheepdog
+  - name: stackforge/distil
+  - name: stackforge/doc8
+  - name: stackforge/dox
+  - name: stackforge/dragonflow
+  - name: stackforge/driverlog
+  - name: stackforge/ec2-api
+  - name: stackforge/ec2-driver
+  - name: stackforge/entropy
+  - name: stackforge/flame
+  - name: stackforge/freezer
+  - name: stackforge/fuel-astute
+  - name: stackforge/fuel-devops
+  - name: stackforge/fuel-docs
+  - name: stackforge/fuel-library
+  - name: stackforge/fuel-main
+  - name: stackforge/fuel-ostf
+  - name: stackforge/fuel-ostf-plugin
+  - name: stackforge/fuel-plugin-cinder-netapp
+  - name: stackforge/fuel-plugin-contrail
+  - name: stackforge/fuel-plugin-elasticsearch-kibana
+  - name: stackforge/fuel-plugin-external-emc
+  - name: stackforge/fuel-plugin-external-glusterfs
+  - name: stackforge/fuel-plugin-external-nfs
+  - name: stackforge/fuel-plugin-external-zabbix
+  - name: stackforge/fuel-plugin-ha-fencing
+  - name: stackforge/fuel-plugin-lma-collector
+  - name: stackforge/fuel-plugin-neutron-fwaas
+  - name: stackforge/fuel-plugin-neutron-lbaas
+  - name: stackforge/fuel-plugin-neutron-vpnaas
+  - name: stackforge/fuel-plugins
+  - name: stackforge/fuel-provision
+  - name: stackforge/fuel-qa
+  - name: stackforge/fuel-specs
+  - name: stackforge/fuel-stats
+  - name: stackforge/fuel-web
+  - name: stackforge/gce-api
+  - name: stackforge/gerrit-dash-creator
+  - name: stackforge/gertty
+  - name: stackforge/git-upstream
+  - name: stackforge/glance-salt-formula
+  - name: stackforge/gnocchi
+  - name: stackforge/golang-client
+  - name: stackforge/graffiti
+  - name: stackforge/group-based-policy
+  - name: stackforge/group-based-policy-automation
+  - name: stackforge/group-based-policy-specs
+  - name: stackforge/group-based-policy-ui
+  - name: stackforge/healthnmon
+  - name: stackforge/horizon-salt-formula
+  - name: stackforge/i18n-test
+  - name: stackforge/inception
+  - name: stackforge/ironic-discoverd
+  - name: stackforge/keystone-salt-formula
+  - name: stackforge/kickstack
+  - name: stackforge/kolla
+  - name: stackforge/kwapi
+  - name: stackforge/libra
+  - name: stackforge/logaas
+  - name: stackforge/magnetodb
+  - name: stackforge/magnetodb-specs
+  - name: stackforge/magnum
+  - name: stackforge/merlin
+  - name: stackforge/milk
+  - name: stackforge/mistral
+  - name: stackforge/mistral-dashboard
+  - name: stackforge/mistral-extra
+  - name: stackforge/monasca-agent
+  - name: stackforge/monasca-api
+  - name: stackforge/monasca-ceilometer
+  - name: stackforge/monasca-common
+  - name: stackforge/monasca-notification
+  - name: stackforge/monasca-persister
+  - name: stackforge/monasca-statsd
+  - name: stackforge/monasca-thresh
+  - name: stackforge/monasca-ui
+  - name: stackforge/monasca-vagrant
+  - name: stackforge/monitoring-for-openstack
+  - name: stackforge/MRaaS
+  - name: stackforge/murano
+  - name: stackforge/murano-agent
+  - name: stackforge/murano-apps
+  - name: stackforge/murano-dashboard
+  - name: stackforge/murano-deployment
+  - name: stackforge/murano-docs
+  - name: stackforge/murano-specs
+  - name: stackforge/namos
+  - name: stackforge/networking-arista
+  - name: stackforge/networking-brocade
+  - name: stackforge/networking-cisco
+  - name: stackforge/networking-edge-vpn
+  - name: stackforge/networking-hyperv
+  - name: stackforge/networking-l2gw
+  - name: stackforge/networking-midonet
+  - name: stackforge/networking-mlnx
+  - name: stackforge/networking-nec
+  - name: stackforge/networking-odl
+  - name: stackforge/networking-ofagent
+  - name: stackforge/networking-ovs-dpdk
+  - name: stackforge/networking-plumgrid
+  - name: stackforge/networking-vsphere
+  - name: stackforge/neutron-powervm
+  - name: stackforge/neutron-salt-formula
+  - name: stackforge/nova-docker
+  - name: stackforge/nova-powervm
+  - name: stackforge/nova-salt-formula
+  - name: stackforge/nova-solver-scheduler
+  - name: stackforge/novaimagebuilder
+  - name: stackforge/occi-os
+  - name: stackforge/octavia
+  - name: stackforge/opencafe
+  - name: stackforge/openstack-chef-repo
+  - name: stackforge/openstack-chef-specs
+  - name: stackforge/openstack-cli-powershell
+  - name: stackforge/openstack-salt-formula
+  - name: stackforge/openstack-sdk-dotnet
+  - name: stackforge/openstack-sdk-php
+  - name: stackforge/openstackdroid
+  - name: stackforge/openvz-nova-driver
+  - name: stackforge/os-ansible-deployment
+  - name: stackforge/os-client-config
+  - name: stackforge/osprofiler
+  - name: stackforge/ospurge
+  - name: stackforge/packstack
+  - name: stackforge/packstack-vagrant
+  - name: stackforge/pecan
+  - name: stackforge/poppy
+  - name: stackforge/powervc-driver
+  - name: stackforge/prep-source-repos
+  - name: stackforge/proliantutils
+  - name: stackforge/puppet-ceilometer
+  - name: stackforge/puppet-ceph
+  - name: stackforge/puppet-cinder
+  - name: stackforge/puppet-designate
+  - name: stackforge/puppet-glance
+  - name: stackforge/puppet-gnocchi
+  - name: stackforge/puppet-heat
+  - name: stackforge/puppet-horizon
+  - name: stackforge/puppet-ironic
+  - name: stackforge/puppet-keystone
+  - name: stackforge/puppet-manila
+  - name: stackforge/puppet-monasca
+  - name: stackforge/puppet-murano
+  - name: stackforge/puppet-n1k-vsm
+  - name: stackforge/puppet-neutron
+  - name: stackforge/puppet-nova
+  - name: stackforge/puppet-openstack
+  - name: stackforge/puppet_openstack_builder
+  - name: stackforge/puppet-openstack-cloud
+  - name: stackforge/puppet-openstack_dev_env
+  - name: stackforge/puppet-openstack_extras
+  - name: stackforge/puppet-openstack-specs
+  - name: stackforge/puppet-openstacklib
+  - name: stackforge/puppet-sahara
+  - name: stackforge/puppet-swift
+  - name: stackforge/puppet-tempest
+  - name: stackforge/puppet-tripleo
+  - name: stackforge/puppet-trove
+  - name: stackforge/puppet-tuskar
+  - name: stackforge/puppet-vswitch
+  - name: stackforge/pyghmi
+  - name: stackforge/python-blazarclient
+  - name: stackforge/python-cloudfoundryclient
+  - name: stackforge/python-cloudkittyclient
+  - name: stackforge/python-congressclient
+  - name: stackforge/python-cueclient
+  - name: stackforge/python-fuelclient
+  - name: stackforge/python-group-based-policy-client
+  - name: stackforge/python-jenkins
+  - name: stackforge/python-libraclient
+  - name: stackforge/python-magnetodbclient
+  - name: stackforge/python-magnumclient
+  - name: stackforge/python-mistralclient
+  - name: stackforge/python-monascaclient
+  - name: stackforge/python-muranoclient
+  - name: stackforge/python-openstacksdk
+  - name: stackforge/python-opentsdbclient
+  - name: stackforge/python-rackclient
+  - name: stackforge/python-rallyclient
+  - name: stackforge/python-solumclient
+  - name: stackforge/python-surveilclient
+  - name: stackforge/python-tackerclient
+  - name: stackforge/rack
+  - name: stackforge/radar
+  - name: stackforge/rally
+  - name: stackforge/refstack
+  - name: stackforge/refstack-client
+  - name: stackforge/requests-mock
+  - name: stackforge/rubick
+  - name: stackforge/sahara-ci-config
+  - name: stackforge/sahara-guestagent
+  - name: stackforge/saml-generator
+  - name: stackforge/satori
+  - name: stackforge/shaker
+  - name: stackforge/solum
+  - name: stackforge/solum-dashboard
+  - name: stackforge/solum-infra-guestagent
+  - name: stackforge/solum-specs
+  - name: stackforge/sphinxcontrib-docbookrestapi
+  - name: stackforge/sqlalchemy-migrate
+  - name: stackforge/staccato
+  - name: stackforge/stackalytics
+  - name: stackforge/stacktach
+  - name: stackforge/stacktach-klugman
+  - name: stackforge/stacktach-notification-utils
+  - name: stackforge/stacktach-notigen
+  - name: stackforge/stacktach-quince
+  - name: stackforge/stacktach-quincy
+  - name: stackforge/stacktach-sandbox
+  - name: stackforge/stacktach-shoebox
+  - name: stackforge/stacktach-simport
+  - name: stackforge/stacktach-stackdistiller
+  - name: stackforge/stacktach-timex
+  - name: stackforge/stacktach-winchester
+  - name: stackforge/striker
+  - name: stackforge/surveil
+  - name: stackforge/surveil-specs
+  - name: stackforge/swift-ceph-backend
+  - name: stackforge/swift3
+  - name: stackforge/swiftonfile
+  - name: stackforge/swiftpolicy
+  - name: stackforge/swiftsync
+  - name: stackforge/tacker
+  - name: stackforge/tacker-specs
+  - name: stackforge/telcowg-usecases
+  - name: stackforge/tomograph
+  - name: stackforge/tricircle
+  - name: stackforge/tripleo-ansible
+  - name: stackforge/turbo-hipster
+  - name: stackforge/tuskar-ui-extras
+  - name: stackforge/vmtp
+  - name: stackforge/vmware-nsx
+  - name: stackforge/warm
+  - name: stackforge/windows-diskimage-builder
+  - name: stackforge/wsme
+  - name: stackforge/xenapi-os-testing
+  - name: stackforge/xstatic-angular
+  - name: stackforge/xstatic-angular-animate
+  - name: stackforge/xstatic-angular-bootstrap
+  - name: stackforge/xstatic-angular-cookies
+  - name: stackforge/xstatic-angular-fileupload
+  - name: stackforge/xstatic-angular-irdragndrop
+  - name: stackforge/xstatic-angular-mock
+  - name: stackforge/xstatic-angular-sanitize
+  - name: stackforge/xstatic-angular-smart-table
+  - name: stackforge/xstatic-bootstrap-datepicker
+  - name: stackforge/xstatic-bootstrap-scss
+  - name: stackforge/xstatic-d3
+  - name: stackforge/xstatic-font-awesome
+  - name: stackforge/xstatic-hogan
+  - name: stackforge/xstatic-jasmine
+  - name: stackforge/xstatic-jquery-migrate
+  - name: stackforge/xstatic-jquery.bootstrap.wizard
+  - name: stackforge/xstatic-jquery.quicksearch
+  - name: stackforge/xstatic-jquery.tablesorter
+  - name: stackforge/xstatic-jsencrypt
+  - name: stackforge/xstatic-magic-search
+  - name: stackforge/xstatic-qunit
+  - name: stackforge/xstatic-rickshaw
+  - name: stackforge/xstatic-spin
+  - name: stackforge/yaql
+  - name: stackforge/zvm-driver
