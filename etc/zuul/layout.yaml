@@ -20,7 +20,7 @@ pipelines:
           comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*recheck(( (?:bug|lp)[\s#:]*(\d+))|( xen))\s*$
           branch: ^master.*$
         - event: comment-added
-          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*xen[\s:]*recheck(( (?:bug|lp)[\s#:]*(\d+))|)\s*$
+          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*xen[\s:]*recheck(( (?:bug|lp)[\s#:]*(\d+)))\s*$
           branch: ^master.*$
     success:
       gerrit: {}
@@ -676,3 +676,4 @@ projects:
   - name: stackforge/xstatic-spin
   - name: stackforge/yaql
   - name: stackforge/zvm-driver
+
