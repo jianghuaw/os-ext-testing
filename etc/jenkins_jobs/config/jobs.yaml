@@ -22,18 +22,21 @@
               sudo dpkg -i /opt/nodepool-scripts/*.deb
               sudo apt-get install -y -f --fix-missing
           }}
-
-          function cleanup_host_hook {{
+          function _exit_trap {{
+              code=$?
               echo "Copying custom logs"
 
               # Xen logs
               if [ -d /var/log/xen ]; then
-                  sudo cp -r /var/log/xen $BASE/logs/
+                  sudo cp -r /var/log/xen /opt/stack/logs/
+                  sudo chmod a+wrx -R /opt/stack/logs/xen
               fi
+
+              exit $code
           }}
 
           export -f pre_test_hook
-          export -f cleanup_host_hook
+          trap _exit_trap EXIT
 
           if [ -z $ZUUL_PROJECT ]; then
               export ZUUL_PROJECT=openstack-dev/sandbox
@@ -46,6 +49,7 @@
           export DEVSTACK_GATE_VIRT_DRIVER=libvirt
           export DEVSTACK_GATE_LIBVIRT_TYPE=xen
           export DEVSTACK_GATE_TIMEOUT=180
+          #export DEVSTACK_GATE_TEMPEST_REGEX='^(?!.*test_volume_boot_pattern).*'
           export DEVSTACK_GATE_TEMPEST_REGEX='(?!.*\[.*\bslow\b.*\]|.*test_volume_boot_pattern)(^tempest\.(api|scenario|thirdparty))'
           export RE_EXEC=true
           cp devstack-gate/devstack-vm-gate-wrap.sh ./safe-devstack-vm-gate-wrap.sh
