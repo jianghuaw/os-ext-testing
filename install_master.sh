@@ -148,9 +148,5 @@ sudo puppet apply --verbose $PUPPET_MODULE_PATH -e "class {'os_ext_testing::mast
 sudo cp $DATA_PATH/$JENKINS_SSH_KEY_PATH /home/nodepool/.ssh/id_rsa
 sudo cp $OSEXT_PATH/nodepool-scripts/* /etc/nodepool/scripts
 
-# Patch nodepool to support config drive - waiting for https://review.openstack.org/#/c/155770/ to be merged
-cd /usr/local/lib/python2.7/dist-packages/nodepool
-sudo patch -N -p2 < $OSEXT_PATH/config_drive.patch
-
 sudo echo $SWIFT_API_KEY > /etc/swift_api_key
 sudo chown jenkins.jenkins /etc/swift_api_key
