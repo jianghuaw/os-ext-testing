@@ -15,7 +15,7 @@ cron:
 #   root@jenkins:~# echo "0 $((RANDOM%23+1)) * * *"
 #   0 16 * * *
 # This references the hour of the day when images will be built.
-  image-update: '0 0 * * *'
+  image-update: '0 11 * * *'
 
 zmq-publishers:
   - tcp://localhost:8888
@@ -24,40 +24,73 @@ gearman-servers:
   - host: 127.0.0.1
 
 labels:
-  - name: d-p-c
-    image: dpc
-    min-ready: 1
+  - name: ds-xen
+    image: ds-xen
+    min-ready: 2
     providers:
-      - name: local_01
-
-diskimages:
-    - name: dpc
-      elements:
-        - ubuntu
-        - vm
-        - openstack-repos
-        - puppet
-        - nodepool-base
-        - node-devstack
-      release: trusty
-      env-vars:
-        TMPDIR: /opt/dib_tmp
-        DIB_IMAGE_CACHE: /opt/dib_cache
+      - name: rax-iad
 
 providers:
-  - name: local_01
-#TODO: Update the provider username, password, and authurl
+  - name: rax-iad
+    region-name: 'IAD'
+    service-type: 'compute'
+    service-name: 'cloudServersOpenStack'
     username: '<%= provider_username %>'
     password: '<%= provider_password %>'
-    auth-url: 'http://<openstack cloud>:5000/v2.0'
-    project-name: 'admin'
-    max-servers: 2
+    project-id: '874240'
+    auth-url: 'https://identity.api.rackspacecloud.com/v2.0/'
+    boot-timeout: 600
+    max-servers: 5
+    rate: 10.0
+    keypair: 'xenproject-nodepool'
+    template-hostname: '{image.name}-{timestamp}.template.xen.org'
     images:
-      - name: dpc
+      - name: ds-xen
+        # This is the image name to use found in this provider's `glance image-list`
+        base-image: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
         min-ram: 8192
-        diskimage: dpc
-        username: jenkins
-        private-key: '/home/nodepool/.ssh/id_rsa'
+        name-filter: 'Performance'
+        # This is the script that will be used to prepare the image
+        setup: prepare_node_devstack_xen.sh
+        #Set the public key part only of the jenkin's key (no whitespace) to the NODEPOOL_SSH_KEY environment variable in order to
+        #inject it into the image's jenkins user .ssh/authorized_keys
+        #This key will be used to log in and setup jenkins on the target VM
+#	private-key: '/home/nodepool/.ssh/id_rsa'
+        config-drive: true
+        meta:
+            xenapi_use_agent: 'false'
+#  - name: rax-ord
+#    region-name: 'ORD'
+#    username: '<%= provider_username %>'
+#    password: '<%= provider_password %>'
+#    project-id: '874240'
+#    auth-url: 'https://identity.api.rackspacecloud.com/v2.0/'
+#    boot-timeout: 600
+#    max-servers: 5
+#    rate: 10.0
+#    keypair: 'xenproject-nodepool'
+#    template-hostname: '{image.name}-{timestamp}.template.xen.org'
+#    images:
+#      - name: ds-xen
+#        # This is the image name to use found in this provider's `glance image-list`
+#        base-image: 'Ubuntu 14.04 LTS (Trusty Tahr) (PVHVM)'
+#        min-ram: 8192
+#        name-filter: 'Performance'
+#        # This is the script that will be used to prepare the image
+#        setup: prepare_node_devstack_xen.sh
+#        #Set the public key part only of the jenkin's key (no whitespace) to the NODEPOOL_SSH_KEY environment variable in order to
+#        #inject it into the image's jenkins user .ssh/authorized_keys
+#        #This key will be used to log in and setup jenkins on the target VM
+#        private-key: '/home/nodepool/.ssh/id_rsa'
+#        config-drive: true
+#        meta:
+#            xenapi_use_agent: 'false'
+
 
 targets:
   - name: jenkins1
+#    jenkins:
+#      url: 'http://localhost:8080/'
+#      user: '<%= jenkins_api_user %>'
+#      apikey: '<%= jenkins_api_key %>'
+#      credentials-id: '<%= jenkins_credentials_id %>'
