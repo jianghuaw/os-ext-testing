@@ -21,19 +21,17 @@ DATA_PATH=/root/os-ext-data
 # Copied from the following URL Feb 2016
 # http://docs.openstack.org/infra/openstackci/third_party_ci.html
 
-sudo su -
 # Install puppet
 [ -e install_puppet.sh ] && rm install_puppet.sh
 wget https://git.openstack.org/cgit/openstack-infra/system-config/plain/install_puppet.sh
 bash install_puppet.sh
 
 # Install puppet modules to /etc/puppet/modules
+[ -e system-config ] && rm -rf system-config
 git clone https://git.openstack.org/openstack-infra/system-config
 cd system-config
 ./install_modules.sh
-exit
 
-sudo su -
 # Setup the site we're deploying
 cp /etc/puppet/modules/openstackci/contrib/single_node_ci_site.pp /etc/puppet/manifests/site.pp
 
@@ -48,6 +46,5 @@ cp /root/os-ext-data/single_node_ci_data.yaml /etc/puppet/environments/common.ya
 
 # Add 'jenkins' to the hostname so Apache is happy
 sed -i -e 's/^\(127\.0\.0\.1.*\)$/\1 jenkins/' /etc/hosts
-exit
 
 sudo puppet apply --verbose /etc/puppet/manifests/site.pp
