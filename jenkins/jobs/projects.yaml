@@ -7,4 +7,4 @@
     jobs:
         - noop-check-communication
         - dsvm-tempest-xen:
-	    node: 'ds-xen'
+            node: 'ds-xen'
