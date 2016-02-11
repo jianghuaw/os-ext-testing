@@ -2,11 +2,9 @@
     name: sandbox
     github-org: openstack-dev
     node: master
-    vendor: myvendor
+    vendor: XenProject
 
     jobs:
         - noop-check-communication
-        - dsvm-tempest-full:
-            node: 'devstack_slave || devstack-precise-check || d-p-c'
-        - dsvm-tempest-my-cinder-driver:
-            node: 'd-p-c'
+        - dsvm-tempest-xen:
+	    node: 'ds-xen'
