@@ -32,13 +32,10 @@ labels:
 
 providers:
   - name: rax-iad
+    cloud: rax
     region-name: 'IAD'
     service-type: 'compute'
     service-name: 'cloudServersOpenStack'
-    username: '<%= provider_username %>'
-    password: '<%= provider_password %>'
-    project-id: '874240'
-    auth-url: 'https://identity.api.rackspacecloud.com/v2.0/'
     boot-timeout: 600
     max-servers: 5
     rate: 10.0
@@ -60,6 +57,7 @@ providers:
         meta:
             xenapi_use_agent: 'false'
 #  - name: rax-ord
+#    cloud: rax
 #    region-name: 'ORD'
 #    username: '<%= provider_username %>'
 #    password: '<%= provider_password %>'
