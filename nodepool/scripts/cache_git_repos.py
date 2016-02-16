@@ -61,8 +61,6 @@ def clone_repo(project):
                                       status=True,
                                       cwd=os.path.join('/opt/git', project))
         out = '\n'.join((out, moreout))
-        if status != 0 and project='openstack/solar-resources':
-            status = 0 
 
     # Status of 0 imples all the above worked, 1 means something failed.
     return (status, out)
