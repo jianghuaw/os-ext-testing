@@ -75,4 +75,6 @@ sudo puppet apply --verbose /etc/puppet/manifests/site.pp
 
 # Copy the osci config file (which includes the swift API key) to the
 # nodepool-scripts directory so it will be added to nodes.
-cp /root/os-ext-data/osci.config /etc/nodepool/scripts
+cp /root/os-ext-data/osci.config /etc/project-config/nodepool/scripts
+# Need to re-run puppet as the first invocation will clone project-config using git.
+sudo puppet apply --verbose /etc/puppet/manifests/site.pp
