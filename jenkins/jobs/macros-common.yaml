@@ -108,12 +108,7 @@
           # CA bundle in 2.5.2 is broken
           pip install --upgrade requests>2.5.2
           sudo mkdir -p /etc/osci/
-          cat | sudo tee /etc/osci/osci.config >/dev/null << EOF
-          SWIFT_API_KEY=<%= @swift_api_key %>
-          SWIFT_USERNAME=<%= @swift_api_user %>
-          SWIFT_REGION=IAD
-          SWIFT_CONTAINER=XenLogs
-          EOF
+          sudo cp /opt/nodepool-scripts/osci.config /etc/osci/osci.config
           osci-upload /tmp/console.html {upload_source} $LOG_PATH
 
 

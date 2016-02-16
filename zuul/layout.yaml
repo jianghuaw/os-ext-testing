@@ -23,6 +23,8 @@ pipelines:
       gerrit:
         verified: -1
     merge-failure:
+      gerrit:
+        verified: -1
       smtp:
         to: openstack-ci@xenproject.org
         from: zuul@zuul.openstack.xenproject.org

@@ -26,7 +26,7 @@ gearman-servers:
 labels:
   - name: ds-xen
     image: ds-xen
-    min-ready: 2
+    min-ready: 1
     providers:
       - name: rax-iad
 
