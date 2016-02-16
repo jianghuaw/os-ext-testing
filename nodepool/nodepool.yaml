@@ -52,7 +52,7 @@ providers:
         #Set the public key part only of the jenkin's key (no whitespace) to the NODEPOOL_SSH_KEY environment variable in order to
         #inject it into the image's jenkins user .ssh/authorized_keys
         #This key will be used to log in and setup jenkins on the target VM
-        #private-key: '/home/nodepool/.ssh/id_rsa'
+        private-key: '/home/nodepool/.ssh/id_rsa'
         config-drive: true
         meta:
             xenapi_use_agent: 'false'

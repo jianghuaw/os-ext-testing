@@ -15,21 +15,13 @@ pipelines:
         # recheck trigger that runs the check pipeline jobs when someone
         # adds a comment to a review that says "recheck myvendor".
         - event: comment-added
-          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*recheck myvendor\s*$
+          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*xen:*\s*recheck\s*$
     success:
       gerrit:
         verified: 1
-      smtp:
-        to: openstack-ci@xenproject.org
-        from: zuul@zuul.openstack.xenproject.org
-        subject: 'Silent check of {change.project} {change.number},{change.patchset} passed'
     failure:
       gerrit:
         verified: -1
-      smtp:
-        to: openstack-ci@xenproject.org
-        from: zuul@zuul.openstack.xenproject.org
-        subject: 'Silent check of {change.project} {change.number},{change.patchset} failed'
     merge-failure:
       smtp:
         to: openstack-ci@xenproject.org
