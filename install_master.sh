@@ -34,6 +34,7 @@ DATA_PATH=/root/os-ext-data
 # 6) The jobs need an additional plugin in Jenkins to generate correctly, so:
 # -- Install Post-Build Script jenkins plugin (including restarting Jenkins)
 # -- Regenerate jenkins jobs: jenkins-jobs update --delete-old /etc/jenkins_jobs/config
+# -- Enable HTML: Manage Jenkins -> Configure Global Security -> Markup Formatter -> Raw HTML
 # 7) Start processes
 # -- service zuul start; service zuul-merger start
 # -- Wait for a bit, check there are 3 zuul processes (1 merger, 2 servers)
