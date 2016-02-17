@@ -46,7 +46,7 @@
           export DEVSTACK_GATE_VIRT_DRIVER=libvirt
           export DEVSTACK_GATE_LIBVIRT_TYPE=xen
           export DEVSTACK_GATE_TIMEOUT=180
-          export DEVSTACK_GATE_TEMPEST_REGEX='(?!.*\[.*\bslow\b.*\]|.*test_volume_boot_pattern)(^tempest\.(api|scenario|thirdparty))'
+          export DEVSTACK_GATE_TEMPEST_REGEX='(?!.*\[.*\bslow\b.*\]|.*test_volume_boot_pattern|.*test_shelve_volume_backed_instance)(^tempest\.(api|scenario|thirdparty))'
           export RE_EXEC=true
           cp devstack-gate/devstack-vm-gate-wrap.sh ./safe-devstack-vm-gate-wrap.sh
           ./safe-devstack-vm-gate-wrap.sh
