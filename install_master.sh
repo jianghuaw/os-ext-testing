@@ -44,7 +44,24 @@ DATA_PATH=/root/os-ext-data
 # -- Check http://<ip> and http://<ip>:8080 to check that zuul + jenkins (respectively) are running
 # -- Enable gearman and ZMQ in Jenkins (Manage Jenkins --> Configure System) 
 # 8) Secure jenkins - instructions at end of http://docs.openstack.org/infra/openstackci/third_party_ci.html
-# ?) Set up monitoring checks https://intelligence.rackspace.com/
+# 9) Set up monitoring checks https://intelligence.rackspace.com/
+# 10) The CI will be set up to run jobs on openstack-dev/ci-sandbox.  Check that jobs posted there will pass the CI
+# -- Once jobs pass on the sandbox, enable dsvm-tempest-xen in the "silent" job (rather than check) by
+# ---- Editing project-config/zuul/layout.yaml:
+# projects:
+#   - name: openstack-dev/ci-sandbox
+#     check:
+#       - dsvm-tempest-xen
+#
+#   - name: openstack/nova
+#     silent
+#       - dsvm-tempest-xen
+# ---- Change the email address in the silent job from openstack-ci@xenproject.org to one you can monitor
+# ---- sudo puppet apply --verbose /etc/puppet/manifests/site.pp
+# ---- Verify that the silent jobs are passing (through the emails)
+# ---- Modify the silent job on openstack/nova to be a check job
+# ---- sudo puppet apply --verbose /etc/puppet/manifests/site.pp
+
 
 # Install puppet
 [ -e install_puppet.sh ] && rm install_puppet.sh
