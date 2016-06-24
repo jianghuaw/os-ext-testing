@@ -5,7 +5,7 @@ includes:
 pipelines:
   - name: check
     description: Newly uploaded patchsets enter this pipeline to receive an initial +/-1 Verified vote from Jenkins.
-    failure-message: "Build failed.  To recheck use 'xen: recheck'.  For 3rd party ci contact info: https://wiki.openstack.org/wiki/ThirdPartySystems"
+    failure-message: "Build failed.  To recheck use 'xenserver: recheck'.  For 3rd party ci contact info: https://wiki.openstack.org/wiki/ThirdPartySystems"
     manager: IndependentPipelineManager
     trigger:
       gerrit:
@@ -15,7 +15,7 @@ pipelines:
         # recheck trigger that runs the check pipeline jobs when someone
         # adds a comment to a review that says "recheck myvendor".
         - event: comment-added
-          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*xen:*\s*recheck\s*$
+          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*xenserver:*\s*recheck\s*$
     success:
       gerrit:
         verified: 1
@@ -26,8 +26,8 @@ pipelines:
       gerrit:
         verified: -1
       smtp:
-        to: openstack-ci@xenproject.org
-        from: zuul@zuul.openstack.xenproject.org
+        to: jianghua.wang@citrix.com
+        from: jianghua.wang@citrix.com
         subject: Upstream change {change} has a merge failure
 
 
@@ -39,15 +39,15 @@ pipelines:
         - event: patchset-created
         - event: change-restored
         - event: comment-added
-          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*recheck myvendor\s*$
+          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*xenserver:*\s*recheck\s*$
     success:
       smtp:
-        to: openstack-ci@xenproject.org
+        to: jianghua.wang@citrix.com
         from: zuul@zuul.openstack.xenproject.org
         subject: 'Silent check of {change.project} {change.number},{change.patchset} passed'
     failure:
       smtp:
-        to: openstack-ci@xenproject.org
+        to: jianghua.wang@citrix.com
         from: zuul@zuul.openstack.xenproject.org
         subject: 'Silent check of {change.project} {change.number},{change.patchset} failed'
 
@@ -70,15 +70,41 @@ jobs:
         - ^tox.ini$
     parameter-function: single_use_node
     branch: ^master.*$
-    swift:
-      - name: logs
+    #swift:
+    #  - name: logs
 
 
 projects:
-  - name: openstack-dev/ci-sandbox
+  - name: openstack/fuel-plugin-xenserver
     check:
-      - dsvm-tempest-xen
+      - check-fuel-xenserver-plugin
+
+  - name: openstack-dev/sandbox
+    check:
+      - dsvm-tempest-nova-network
+      - dsvm-tempest-neutron-network
 
   - name: openstack/nova
-#    check:
-#      - dsvm-tempest-xen
+    silent:
+      - dsvm-tempest-nova-network
+      - dsvm-tempest-neutron-network
+
+  - name: openstack/neutron
+    silent:
+      - dsvm-tempest-nova-network
+      - dsvm-tempest-neutron-network
+
+  - name: openstack/tempest
+    silent:
+      - dsvm-tempest-nova-network
+      - dsvm-tempest-neutron-network
+
+  - name: openstack-dev/devstack
+    silent:
+      - dsvm-tempest-nova-network
+      - dsvm-tempest-neutron-network
+
+  - name: openstack/xenapi-os-testing
+    silent:
+      - dsvm-tempest-nova-network
+      - dsvm-tempest-neutron-network

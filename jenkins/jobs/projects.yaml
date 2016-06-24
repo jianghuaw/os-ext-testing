@@ -1,10 +1,21 @@
 - project:
-    name: sandbox
+    name: citrix-xenserver-ci
     github-org: openstack-dev
     node: master
-    vendor: XenProject
+    vendor: citrix
 
     jobs:
-        - noop-check-communication
-        - dsvm-tempest-xen:
-            node: 'ds-xen'
+        - dsvm-tempest-nova-network:
+            node: 'ds-xenserver'
+        - dsvm-tempest-neutron-network:
+            node: 'int-ds-xenserver'
+
+- project:
+    name: fuel-xenserver-plugin-ci
+    github-org: openstack-dev
+    vendor: citrix
+    node: fuel-xenserver
+
+    jobs:
+        - check-fuel-xenserver-plugin:
+            node: 'fuel-xenserver'

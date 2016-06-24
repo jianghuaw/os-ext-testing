@@ -1,5 +1,6 @@
 - job-template:
-    name: 'dsvm-tempest-xen'
+    name: 'dsvm-tempest-nova-network'
+    #name: 'check-citrix-xenserver'
     node: '{node}'
 
     wrappers:
@@ -10,48 +11,124 @@
 
     builders:
       - net-info
-      - devstack-checkout
       - shell: |
           #!/bin/bash -xe
+          pushd /opt/git/openstack-infra/devstack-gate
+          sudo /usr/bin/git remote update
+          sudo /usr/bin/git checkout origin/master
+          popd
 
-          function pre_test_hook {{
-              echo "Install thirdparty libraries"
-
-              # Install libvirt here to ensure it is
-              # not replaced devstack
-              sudo dpkg -i /opt/nodepool-scripts/*.deb
-              sudo apt-get install -y -f --fix-missing
-          }}
-
-          function cleanup_host_hook {{
-              echo "Copying custom logs"
-
-              # Xen logs
-              if [ -d /var/log/xen ]; then
-                  sudo cp -r /var/log/xen $BASE/logs/
-              fi
-          }}
-
-          export -f pre_test_hook
-          export -f cleanup_host_hook
-
-          if [ -z $ZUUL_PROJECT ]; then
-              export ZUUL_PROJECT=openstack-dev/sandbox
+          if [ -e /home/jenkins/xenapi-os-testing ]
+          then
+              rm -rf /home/jenkins/xenapi-os-testing
           fi
-          if [ -z $ZUUL_BRANCH ]; then
-              export ZUUL_BRANCH=master
+          /usr/bin/git clone https://github.com/openstack/xenapi-os-testing.git /home/jenkins/xenapi-os-testing
+
+          PYTHONUNBUFFERED=true DEVSTACK_GATE_TEMPEST=1 DEVSTACK_GATE_TEMPEST_FULL=1 \
+          DEVSTACK_GATE_VIRT_DRIVER=xenapi DEVSTACK_GATE_TIMEOUT=180 APPLIANCE_NAME=devstack \
+          ENABLED_SERVICES=g-api,g-reg,key,n-api,n-crt,n-obj,n-cpu,n-sch,horizon,mysql,rabbit,sysstat,dstat,pidstat,s-proxy,s-account,s-container,s-object,n-cond \
+          /home/jenkins/xenapi-os-testing/run_tests.sh 2>&1  | tee /home/jenkins/run_tests.log
+          if grep -q "Failed" ~/result.txt
+          then
+              exit 137
           fi
-          export PYTHONUNBUFFERED=true
-          export DEVSTACK_GATE_TEMPEST=1
-          export DEVSTACK_GATE_VIRT_DRIVER=libvirt
-          export DEVSTACK_GATE_LIBVIRT_TYPE=xen
-          export DEVSTACK_GATE_TIMEOUT=180
-          export DEVSTACK_GATE_TEMPEST_REGEX='(?!.*\[.*\bslow\b.*\]|.*test_volume_boot_pattern|.*test_shelve_volume_backed_instance)(^tempest\.(api|scenario|thirdparty))'
-          export RE_EXEC=true
-          cp devstack-gate/devstack-vm-gate-wrap.sh ./safe-devstack-vm-gate-wrap.sh
-          ./safe-devstack-vm-gate-wrap.sh
+
       - link-logs  # In macros.yaml from os-ext-testing
 
     publishers:
+      #- osci-swift-upload-logs:
       - osci-swift-upload-logs-with-console:
-          upload_source: 'logs'
+          upload_source: 'logs logs/run_tests.log'
+
+- job-template:
+    name: 'dsvm-tempest-neutron-network'
+    #name: 'check-citrix-xenserver-neutron'
+    node: '{node}'
+
+    wrappers:
+      - timeout:
+          timeout: 185  # Timeout in *minutes*
+          fail: true  # A job run that exceeds the timeout will cause a failure
+      - timestamps
+
+    builders:
+      - net-info
+      - shell: |
+          #!/bin/bash -xe
+           pushd /opt/git/openstack-infra/devstack-gate
+           sudo /usr/bin/git remote update
+           sudo /usr/bin/git checkout origin/master
+           popd
+           
+           if [ -e /home/jenkins/xenapi-os-testing ]
+           then
+               rm -rf /home/jenkins/xenapi-os-testing
+           fi
+           /usr/bin/git clone https://github.com/openstack/xenapi-os-testing.git /home/jenkins/xenapi-os-testing
+           RUN_SHELL=/home/jenkins/xenapi-os-testing/run_tests.sh
+           #sed -i -e 's/master/for-neutron-osci/g' $RUN_SHELL
+           #sed -i -e 's/ZUUL_BRANCH:-for-neutron-osci/ZUUL_BRANCH:-master/g' $RUN_SHELL
+           #sed -i -e 's@## config interface and localrc@sed -i s/ryu===4.2.1/ryu===4.0/g /opt/stack/new/requirements/upper-constraints.txt #\n## config interface and localrc@g' $RUN_SHELL
+           
+           PYTHONUNBUFFERED=true DEVSTACK_GATE_TEMPEST=1 DEVSTACK_GATE_TEMPEST_FULL=1 \
+           DEVSTACK_GATE_VIRT_DRIVER=xenapi DEVSTACK_GATE_TIMEOUT=180 APPLIANCE_NAME=devstack \
+           DEVSTACK_GATE_NEUTRON=1 \
+           ENABLED_SERVICES=g-api,g-reg,key,n-api,n-crt,n-obj,n-cpu,n-sch,horizon,mysql,rabbit,sysstat,dstat,pidstat,s-proxy,s-account,s-container,s-object,n-cond \
+           /home/jenkins/xenapi-os-testing/run_tests.sh 2>&1  | tee /home/jenkins/run_tests.log
+           if grep -q "Failed" ~/result.txt
+           then
+               exit 137
+           fi
+
+      - link-logs  # In macros.yaml from os-ext-testing
+
+    publishers:
+      #- osci-swift-upload-logs:
+      - osci-swift-upload-logs-with-console:
+          upload_source: 'logs logs/run_tests.log'
+
+- job-template:
+    name: 'check-fuel-xenserver-plugin'
+    node: '{node}'
+
+    wrappers:
+      - timeout:
+          timeout: 185  # Timeout in *minutes*
+          fail: true  # A job run that exceeds the timeout will cause a failure
+      - timestamps
+
+    builders:
+      #- net-info
+      - shell: |
+           #!/bin/bash -xe
+           env
+           
+           export ZUUL_CHANGES=${ZUUL_CHANGES:-""}
+           export ZUUL_REFSPEC=$(echo $ZUUL_CHANGES | cut -d: -f3)
+           export ZUUL_BRANCH=$(echo $ZUUL_CHANGES | cut -d: -f2)
+           
+           echo "Testing fuel xenserver plugin"
+           LOG=$WORKSPACE/test.log
+           rm -rf $WORKSPACE
+           mkdir -p $WORKSPACE
+           cd $WORKSPACE
+           git clone https://github.com/citrix-openstack/qa -b fuel_ci
+           cd qa/fuel_test
+           cp localrc.default localrc
+           export XS_HOST="venamis.xenrt.citrite.net"
+           export FM_MNT="10.71.77.230:/data/exports"
+           export FM_PWD="r00tme"
+           export FUEL_PLUGIN_REFSPEC=${ZUUL_REFSPEC:-""}
+           
+           export FUEL_TEST_SUCCESS=$WORKSPACE/fuel_test_sucess
+           rm -f $FUEL_TEST_SUCCESS
+           
+           ./fuel_test.sh 2>&1| tee -a $LOG
+           
+           if [ ! -f $FUEL_TEST_SUCCESS ]; then
+               exit 137
+           fi
+         
+    publishers:
+      - osci-swift-upload-logs-with-console:
+          upload_source: 'test.log'

@@ -1,6 +1,5 @@
 #!/bin/bash -xe
-
-# Copyright (C) 2014 - Red Hat, Inc.
+# Copyright (C) 2014 Hewlett-Packard Development Company, L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,12 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-HOSTNAME=$1
+# get rid of system-installed pip
+for p in python-pip python3-pip ; do
+    if apt-cache policy $p | grep -q 'Installed:.*[0-9]' ; then
+        sudo apt-get remove -y $p
+    fi
+done
 
-export SUDO='true'
-export THIN='true'
-
-./prepare_node.sh "$HOSTNAME"
-sudo -u jenkins -i /opt/nodepool-scripts/prepare_devstack_virt_preview.sh "$HOSTNAME"
-
-./restrict_memory.sh
+# install pip using get-pip
+PIP_GET_PIP_URL=https://bootstrap.pypa.io/get-pip.py
+if [ ! -f get-pip.py ] ; then
+    curl -O $PIP_GET_PIP_URL || wget $PIP_GET_PIP_URL
+fi
+sudo -H python get-pip.py
